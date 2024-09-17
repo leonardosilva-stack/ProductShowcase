@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
-use Illuminate\Http\Request;
+use App\Http\Requests\BrandRequest;
+use Illuminate\Validation\ValidationException;
+
 
 class BrandController extends Controller
 {
@@ -27,25 +29,34 @@ class BrandController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function store(BrandRequest $request)
     {
         try {
-            $brand = Brand::create($request->all());
+            $validatedData = $request->validated();
+            $brand = Brand::create($validatedData);
             return response()->json(['message' => 'Brand created successfully', 'brand' => $brand], 201);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while creating the brand', 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function update(Request $request, $id)
+
+    public function update(BrandRequest $request, $id)
     {
         try {
             $brand = Brand::findOrFail($id);
-            $brand->update($request->all());
+
+            $validatedData = $request->validated();
+
+            $brand->update($validatedData);
+
             return response()->json(['message' => 'Brand updated successfully', 'brand' => $brand], 200);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while updating the brand', 'message' => $e->getMessage()], 500);
         }
     }
-
 }
